@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\PrestationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -24,6 +26,14 @@ class Prestation
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $prix = null;
+
+    #[ORM\ManyToMany(targetEntity: RendezVous::class, mappedBy: 'ventes')]
+    private Collection $ventes;
+
+    public function __construct()
+    {
+        $this->ventes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -62,6 +72,33 @@ class Prestation
     public function setPrix(string $prix): self
     {
         $this->prix = $prix;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RendezVous>
+     */
+    public function getVentes(): Collection
+    {
+        return $this->ventes;
+    }
+
+    public function addVente(RendezVous $vente): self
+    {
+        if (!$this->ventes->contains($vente)) {
+            $this->ventes->add($vente);
+            $vente->addVente($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVente(RendezVous $vente): self
+    {
+        if ($this->ventes->removeElement($vente)) {
+            $vente->removeVente($this);
+        }
 
         return $this;
     }
